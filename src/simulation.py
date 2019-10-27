@@ -1,3 +1,6 @@
+"""
+Pedestrian simulation based on cellular automata.
+"""
 import json
 import collections
 import math
@@ -11,12 +14,16 @@ INF = 10**10
 
 
 class System:
+    """
+    A grid of cells.
+    """
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
         self.grid = [[Cell(i, j) for j in range(cols)] for i in range(rows)]
         self.target = None
         self.pedestrians = []
+        self.obstacles = []
 
     def add_target(self, row, col):
         if self.target is not None:
@@ -30,8 +37,13 @@ class System:
 
     def add_obstacle(self, row, col):
         self.grid[row][col].state = OBSTACLE
+        self.obstacles.append(self.grid[row][col])
 
     def compute_distances(self):
+        """
+        Flood the cells with distance values to the target using breadth-first
+        search.
+        """
         self.target.distance = 0
         deque = collections.deque([self.target])
 
@@ -43,7 +55,14 @@ class System:
                     neighbor.distance = cell.distance + 1
                     deque.appendleft(neighbor)
 
+        # for cell in self.obstacles:
+        #     self.add_penalty(cell)
+
     def get_neighbors(self, cell, blacklist):
+        """
+        Return a list of cells which are adjacent to the given cell, within
+        bounds, and in a state which is not blacklisted.
+        """
         deltas = [-1, 0, 1]
 
         return [self.grid[cell.row + d_row][cell.col + d_col]
@@ -54,6 +73,9 @@ class System:
                 self.grid[cell.row + d_row][cell.col + d_col].state not in blacklist]
 
     def step(self):
+        """
+        Advance the system by one step.
+        """
         for p in self.pedestrians:
             self.add_penalty(p)
 
@@ -77,23 +99,44 @@ class System:
         self.pedestrians = new_pedestrians
 
     def print_grid(self):
+        """
+        Print the grid's cell's contents.
+        """
         for row in self.grid:
             print(''.join(str(cell) for cell in row))
 
     def print_distances(self):
+        """
+        Print the grid's distance values.
+        """
         for row in self.grid:
             for cell in row:
                 print(f'{cell.distance:02d} ', end=' ')
             print()
 
+    def print_penalties(self):
+        for row in self.grid:
+            for cell in row:
+                if cell.penalty > 0:
+                    print(f'{cell.penalty:.2f}', end=' ')
+                else:
+                    print('    ', end=' ')
+            print()
+
     def add_penalty(self, cell, d_max=3, negative=False):
-        for row in range(max(0, cell.row - d_max), min(self.rows - 1, cell.row + d_max)):
-            for col in range(max(0, cell.col - d_max), min(self.cols - 1, cell.col + d_max)):
+        """
+        Add a cost penalty to the cells within d_max of this cell.
+        """
+        for row in range(max(0, cell.row - d_max), min(self.rows, cell.row + d_max + 1)):
+            for col in range(max(0, cell.col - d_max), min(self.cols, cell.col + d_max + 1)):
                 d = min(abs(cell.row - row), abs(cell.col - col))
-                self.grid[row][col].penalty -= (-1)**negative * math.exp(1 / (d**2 - (d_max + 1)**2))
+                self.grid[row][col].penalty += (-1)**negative * math.exp(1 / (d**2 - (d_max + 1)**2))
 
 
 class Cell:
+    """
+    A cell of the system.
+    """
     def __init__(self, row, col, state=EMPTY):
         self.state = state
         self.row = row
@@ -109,33 +152,3 @@ class Cell:
             TARGET: 'T'
         }
         return symbols[self.state]
-
-
-def main():
-    filename = 'data/task3.json'
-    with open(filename) as file:
-        scenario = json.load(file)
-    rows, cols = scenario['rows'], scenario['cols']
-    system = System(rows, cols)
-
-    for pos in scenario['pedestrians']:
-        system.add_pedestrian(*pos)
-
-    for pos in scenario['obstacles']:
-        system.add_obstacle(*pos)
-
-    system.add_target(*scenario['target'])
-    system.print_grid()
-
-    system.compute_distances()
-
-    num_steps = 21
-    print(f'Simulating {num_steps} steps')
-    for _ in range(num_steps):
-        system.step()
-
-    system.print_grid()
-
-
-if __name__ == '__main__':
-    main()
