@@ -55,7 +55,6 @@ class System:
                     neighbor.distance = cell.distance + 1
                     deque.appendleft(neighbor)
 
-
     def get_neighbors(self, cell, blacklist):
         """
         Return a list of cells which are adjacent to the given cell, within
