@@ -55,8 +55,8 @@ class System:
                     neighbor.distance = cell.distance + 1
                     deque.appendleft(neighbor)
 
-        # for cell in self.obstacles:
-        #     self.add_penalty(cell)
+        for cell in self.obstacles:
+            self.add_penalty(cell)
 
     def get_neighbors(self, cell, blacklist):
         """
@@ -123,7 +123,7 @@ class System:
                     print('    ', end=' ')
             print()
 
-    def add_penalty(self, cell, d_max=3, negative=False):
+    def add_penalty(self, cell, d_max=1, negative=False):
         """
         Add a cost penalty to the cells within d_max of this cell.
         """
