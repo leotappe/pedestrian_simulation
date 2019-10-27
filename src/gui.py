@@ -38,8 +38,8 @@ def display():
 
     system.add_target(*scenario['target'])
 
-    # Flood cells of system using BFS / Dijkstra
-    system.compute_distances()
+    # Flood cells of system using Dijkstra
+    system.dijkstra()
 
     # Root GUI widget
     root = tk.Tk()

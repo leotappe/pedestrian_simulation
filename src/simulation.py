@@ -1,9 +1,9 @@
 """
 Pedestrian simulation based on cellular automata.
 """
-import json
 import collections
 import math
+import heapq
 
 
 EMPTY = 0
@@ -41,8 +41,7 @@ class System:
 
     def compute_distances(self):
         """
-        Flood the cells with distance values to the target using breadth-first
-        search.
+        Deprecated, doesn't use euclidean distance.
         """
         self.target.distance = 0
         deque = collections.deque([self.target])
@@ -54,6 +53,25 @@ class System:
                 if cell.distance + 1 < neighbor.distance:
                     neighbor.distance = cell.distance + 1
                     deque.appendleft(neighbor)
+
+    def dijkstra(self):
+        """
+        Flood the cells with distance values to the target using Dijkstra
+        Algorithm.
+        """
+        self.target.distance = 0
+        priority_queue = [(0, self.target)]
+
+        while priority_queue:
+            distance, cell = heapq.heappop(priority_queue)
+            if distance > cell.distance:
+                continue
+
+            for neighbor in self.get_neighbors(cell, [OBSTACLE]):
+                distance = math.sqrt((cell.row - neighbor.row)**2 + (cell.col - neighbor.col)**2)
+                if cell.distance + distance < neighbor.distance:
+                    neighbor.distance = cell.distance + distance
+                    heapq.heappush(priority_queue, (neighbor.distance, neighbor))
 
     def get_neighbors(self, cell, blacklist):
         """
@@ -149,3 +167,6 @@ class Cell:
             TARGET: 'T'
         }
         return symbols[self.state]
+
+    def __lt__(self, other):
+        return self.distance < other.distance
