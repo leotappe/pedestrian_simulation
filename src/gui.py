@@ -4,7 +4,7 @@ Graphical user interface for pedestrian simulation.
 import json
 import tkinter as tk
 from tkinter import filedialog
-import simulation
+import src.simulation as simulation
 
 
 CELL_SIZE = 20
