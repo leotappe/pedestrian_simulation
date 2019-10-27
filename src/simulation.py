@@ -55,8 +55,6 @@ class System:
                     neighbor.distance = cell.distance + 1
                     deque.appendleft(neighbor)
 
-        for cell in self.obstacles:
-            self.add_penalty(cell)
 
     def get_neighbors(self, cell, blacklist):
         """
