@@ -7,7 +7,7 @@ from tkinter import filedialog
 import src.simulation as simulation
 
 
-CELL_SIZE = 20
+CELL_SIZE = 16
 
 COLORS = {
     simulation.EMPTY: 'white',
@@ -30,13 +30,14 @@ def display():
     rows, cols = scenario['rows'], scenario['cols']
     system = simulation.System(rows, cols)
 
-    for pos in scenario['pedestrians']:
-        system.add_pedestrian(*pos)
+    for row, col in scenario['pedestrians']:
+        system.add_pedestrian(row - 1, col - 1)
 
-    for pos in scenario['obstacles']:
-        system.add_obstacle(*pos)
+    for row, col in scenario['obstacles']:
+        system.add_obstacle(row - 1, col -1)
 
-    system.add_target(*scenario['target'])
+    row, col = scenario['target']
+    system.add_target(row - 1, col - 1)
 
     # Flood cells of system using Dijkstra
     system.dijkstra()
