@@ -68,7 +68,7 @@ class System:
                 continue
 
             for neighbor in self.get_neighbors(cell, [OBSTACLE]):
-                distance = math.sqrt((cell.row - neighbor.row)**2 + (cell.col - neighbor.col)**2)
+                distance = euclidean_distance(cell, neighbor)
                 if cell.distance + distance < neighbor.distance:
                     neighbor.distance = cell.distance + distance
                     heapq.heappush(priority_queue, (neighbor.distance, neighbor))
@@ -138,14 +138,15 @@ class System:
                     print('    ', end=' ')
             print()
 
-    def add_penalty(self, cell, d_max=1, negative=False):
+    def add_penalty(self, cell, d_max=3, negative=False):
         """
         Add a cost penalty to the cells within d_max of this cell.
         """
-        for row in range(max(0, cell.row - d_max), min(self.rows, cell.row + d_max + 1)):
-            for col in range(max(0, cell.col - d_max), min(self.cols, cell.col + d_max + 1)):
-                d = min(abs(cell.row - row), abs(cell.col - col))
-                self.grid[row][col].penalty += (-1)**negative * math.exp(1 / (d**2 - (d_max + 1)**2))
+        for row in self.grid[max(0, cell.row - d_max):min(self.rows, cell.row + d_max + 1)]:
+            for other_cell in row[max(0, cell.col - d_max):min(self.cols, cell.col + d_max + 1)]:
+                distance = euclidean_distance(cell, other_cell)
+                if distance < d_max:
+                    other_cell.penalty += (-1)**negative * math.exp(1 / (distance**2 - d_max**2))
 
 
 class Cell:
@@ -170,3 +171,7 @@ class Cell:
 
     def __lt__(self, other):
         return self.distance < other.distance
+
+
+def euclidean_distance(cell_1, cell_2):
+    return math.sqrt((cell_1.row - cell_2.row)**2 + (cell_1.col - cell_2.col)**2)
